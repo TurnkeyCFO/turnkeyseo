@@ -27,8 +27,15 @@ function computeSeoEstimate(payload) {
     tracking: { low: 100, high: 250, setup: 200, label: "Reporting + tracking stack" }
   };
 
-  const contractAdjustments = payload.timeline === "priority" ? { low: 200, high: 300, setup: 0 } : { low: 0, high: 0, setup: 0 };
-  const websiteAdjustments = payload.website === "needs-work" ? { low: 250, high: 500, setup: 450 } : payload.website === "rebuild" ? { low: 500, high: 900, setup: 900 } : { low: 0, high: 0, setup: 0 };
+  const contractAdjustments = payload.timeline === "priority"
+    ? { low: 200, high: 300, setup: 0 }
+    : { low: 0, high: 0, setup: 0 };
+
+  const websiteAdjustments = payload.website === "needs-work"
+    ? { low: 250, high: 500, setup: 450 }
+    : payload.website === "rebuild"
+      ? { low: 500, high: 900, setup: 900 }
+      : { low: 0, high: 0, setup: 0 };
 
   let low = baseMap[payload.package].low + footprintAdjustments[payload.footprint].low + contractAdjustments.low + websiteAdjustments.low;
   let high = baseMap[payload.package].high + footprintAdjustments[payload.footprint].high + contractAdjustments.high + websiteAdjustments.high;
@@ -97,4 +104,37 @@ function bindSeoEstimator() {
   render();
 }
 
+function bindPointerGlow() {
+  const cards = document.querySelectorAll(".glow-card");
+  cards.forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const bounds = card.getBoundingClientRect();
+      const x = event.clientX - bounds.left;
+      const y = event.clientY - bounds.top;
+      card.style.setProperty("--mx", `${x}px`);
+      card.style.setProperty("--my", `${y}px`);
+    });
+  });
+}
+
+function bindReveals() {
+  const items = document.querySelectorAll(".reveal");
+  if (!items.length) {
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.18 });
+
+  items.forEach((item) => observer.observe(item));
+}
+
 bindSeoEstimator();
+bindPointerGlow();
+bindReveals();
